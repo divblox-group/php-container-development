@@ -1,0 +1,9 @@
+appname.dxgroup.local {
+    reverse_proxy app:80
+    tls internal
+}
+
+redisinsight.dxgroup.local {
+    reverse_proxy redisinsight:5540
+    tls internal
+}

@@ -1,0 +1,57 @@
+services:
+    caddy:
+        image: caddy:latest
+        ports:
+            - 80:80
+            - 443:443
+            - 443:443/udp
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - caddy_data:/data
+            - caddy_config:/config
+    app:
+        # build:
+        #     context: .
+        #     dockerfile: Xdebug.Dockerfile
+        # image: customxdebug
+        image: johanmarx/stratusolve_php_apache:php802018-240422
+        volumes:
+            - ./src:/var/www/html/ #bind your source
+        extra_hosts:
+            - appname.dxgroup.local:host-gateway
+        env_file:
+            - sdev.env # or divbloxphp.env or create app specific files
+    sql:
+        image: mysql:8.0
+        environment:
+            MYSQL_ROOT_PASSWORD: "secret"
+            MYSQL_USER: "dxuser"
+            MYSQL_PASSWORD: "secret"
+            MYSQL_DATABASE: "dxdatabase"
+        volumes:
+            - mysql8_data:/var/lib/mysql
+        command:
+            - --default-authentication-plugin=caching_sha2_password
+            - --lower_case_table_names=1
+            - --sql_mode=
+        ports:
+            - 3306:3306
+    redis:
+        image: redis:latest
+        ports:
+            - 6379:6379
+        command: redis-server --save 60 10 --requirepass 123
+        volumes:
+            - reddis_data:/data
+    redisinsight:
+        image: redis/redisinsight:latest
+        ports:
+            - 5540:5540
+        volumes:
+            - redisinsight_data:/data
+volumes:
+    mysql8_data:
+    caddy_data:
+    caddy_config:
+    reddis_data:
+    redisinsight_data:
