@@ -42,7 +42,7 @@ services:
             - 6379:6379
         command: redis-server --save 60 10 --requirepass 123
         volumes:
-            - reddis_data:/data
+            - redis_data:/data
     redisinsight:
         image: redis/redisinsight:latest
         ports:
@@ -53,5 +53,5 @@ volumes:
     mysql8_data:
     caddy_data:
     caddy_config:
-    reddis_data:
+    redis_data:
     redisinsight_data:
