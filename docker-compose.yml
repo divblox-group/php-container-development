@@ -14,11 +14,12 @@ services:
         #     context: .
         #     dockerfile: Xdebug.Dockerfile
         # image: customxdebug
-        image: johanmarx/stratusolve_php_apache:php802018-240422
+        image: johanmarx/stratusolve_php_apache:latest
         volumes:
             - ./src:/var/www/html/ #bind your source
         extra_hosts:
             - appname.dxgroup.local:host-gateway
+            - host.docker.internal:host-gateway # for xdebug
         env_file:
             - sdev.env # or divbloxphp.env or create app specific files
     sql:
@@ -40,7 +41,7 @@ services:
         image: redis:latest
         ports:
             - 6379:6379
-        command: redis-server --save 60 10 --requirepass 123
+        command: redis-server --save 60 1 --requirepass 123
         volumes:
             - redis_data:/data
     redisinsight:
