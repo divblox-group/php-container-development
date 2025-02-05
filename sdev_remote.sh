@@ -6,8 +6,9 @@ normal='\033[0m'
 
 output=false
 banner=false
-maintenancePassword=""
+maintenancePassword="123"
 moduleUrls=( 
+    https://appname.dxgroup.local/
 )
 
 if $banner; then
@@ -53,7 +54,7 @@ do
             --header 'Content-Type: application/x-www-form-urlencoded' \
             --data-urlencode "Password=${maintenancePassword}" \
             --data-urlencode "Function=${operation}")
-        echo "${result}" | cut -c1-200
+        echo "${result}" | grep -Eo '"[^"]*" *(: *([0-9]*|"[^"]*")[^{}\["]*|,)?|[^"\]\[\}\{]*|\{|\},?|\[|\],?|[0-9 ]*,?' | awk '{if ($0 ~ /^[}\]]/ ) offset-=4; printf "%*c%s\n", offset, " ", $0; if ($0 ~ /^[{\[]/) offset+=4}'
         if [[ "$result" == *"\"Result\":\"Success\""* ]]; then
             echo -e -n "${success}SUCCESS${normal}\n"
             successCount=$((successCount+1))
