@@ -1,5 +1,5 @@
 #!/bin/bash
-colour='\033[1;33m'
+colour='\033[38;5;208m'
 success='\033[1;32m'
 error='\033[1;31m'
 normal='\033[0m' 

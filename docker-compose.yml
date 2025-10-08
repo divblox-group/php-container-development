@@ -14,9 +14,9 @@ services:
         #     context: .
         #     dockerfile: Xdebug.Dockerfile
         # image: customxdebug
-        image: johanmarx/stratusolve_php_apache:latest
+        image: ghcr.io/divblox-group/php-apache-base-docker-image:latest
         volumes:
-            - ./src:/var/www/html/ #bind your source
+            - ./sdev:/var/www/html/ #bind your source
         extra_hosts:
             - appname.dxgroup.local:host-gateway
             - host.docker.internal:host-gateway # for xdebug
@@ -41,7 +41,7 @@ services:
         image: redis:latest
         ports:
             - 6379:6379
-        command: redis-server --save 60 1 --requirepass 123
+        command: redis-server --save 1 1 --requirepass 123
         volumes:
             - redis_data:/data
     redisinsight:
@@ -50,6 +50,18 @@ services:
             - 5540:5540
         volumes:
             - redisinsight_data:/data
+    maildev:
+        image: maildev/maildev:latest
+        ports:
+            - 1080:80
+            - 1025:25
+        environment:
+            MAILDEV_SMTP_PORT: "25"
+            MAILDEV_WEB_PORT: "80"
+            MAILDEV_INCOMING_USER: "maildev@maildev.dev"
+            MAILDEV_INCOMING_PASS: "secret"
+            MAILDEV_WEB_USER: "admin"
+            MAILDEV_WEB_PASS: "admin"
 volumes:
     mysql8_data:
     caddy_data:

@@ -1,18 +1,38 @@
 # Running sDev and divbloxPHP locally
 
-## Idea
+The idea with this is to provide developers with a way to develop sDev and divbloxPHP web applications locally using containers.
 
-The idea with this is to provide developers with a way to develop sDev and divbloxPHP web applications locally using containers. This is build on the [image](https://hub.docker.com/r/johanmarx/stratusolve_php_apache) and you can find a bit more info.
+## Suggested file structures
 
-## Requirements
+The repo is envisioned to be a high level folder wherein your PHP based projects will reside. You can then swap between configurations and environment files depending on which project you are actively working on.
 
-### A Unix-like OS
+```
+php-container-development/
+├─ sdev/
+├─ project1/
+└─ project2/
+```
+
+Another option is to re-create this structure for each project. Where you customise the configuration once per project.
+
+```
+php-container-development-sdev/
+└─ sdev/
+php-container-development-project1/
+└─ project1/
+php-container-development-project2/
+└─ project2/
+```
+
+# Requirements
+
+## A Unix-like OS
 
 This guide was written and tested for Unix-based operating systems. So macOS, BSD or any Linux distribution should work. There are some notes for Windows but as a whole, this guide will not specifically cater to or diverge for Windows users.
 
 [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) can be an option, but it comes with its own set of challenges.
 
-### Git
+## Git
 
 Git should be already installed on most systems. If not, you can find it [here](https://git-scm.com/)
 
@@ -22,7 +42,7 @@ Run the following command in the terminal to ensure you have it installed:
 git -v
 ```
 
-### GitHub CLI
+## GitHub CLI
 
 Go [here](https://cli.github.com/) or check your package manager to install the GitHub CLI tool.
 
@@ -32,7 +52,7 @@ Run the following command in the terminal to ensure you have it installed:
 gh help
 ```
 
-### Docker + Docker-Compose
+## Docker + Docker-Compose
 
 Go [here](https://docs.docker.com/get-docker/) to get Docker Desktop. Follow the instructions for your operating system.
 
@@ -46,7 +66,7 @@ docker-compose -v
 docker ps
 ```
 
-### Manual DNS entries
+## Manual DNS entries
 
 This will allow you and other services to connect to your containers using friendly DNS names on your local machine.
 
@@ -57,13 +77,13 @@ Edit your machine's hosts file and add the following lines as an example:
 127.0.0.1   redisinsight.dxgroup.local
 ```
 
-#### Hosts File Locations
+### Hosts File Locations
 
 -   Linux: `/etc/hosts`
 -   macOS: `/private/etc/hosts`
 -   Windows: `c:\windows\system32\drivers\etc\hosts.file`
 
-#### Validate
+### Validate
 
 Run the following command to check if the DNS entries are used:
 
@@ -73,37 +93,45 @@ ping appname.dxgroup.local
 
 You should see responses from our localhost with IP `127.0.0.1`. Otherwise, check your setup or try restarting your machine.
 
-## Steps
+# Steps
 
-### GitHub CLI Login
+## GitHub CLI Login
 
-In your terminal type the following command:
+In your terminal type the following command. This will prompt us to log in to GitHub and grant additional scopes that will be required in the next steps.
 
 ```bash
-gh auth login
+gh auth login -s read:packages
 ```
 
 Follow the prompts and log in with your GitHub account.
 
-### Setup & Update
+## Docker login to GHCR
 
-This script will pull and create each of our modules by checking out the specified branches into the specified folders.
+Now we use our GitHub credentials to authenticate Docker and gain access to the private container images stored on the GitHub Container Registry (GHCR).
+
+```bash
+docker login ghcr.io -u $(gh api user -q .login) -p $(gh auth token)
+```
+
+## Setup & Update
+
+This script will clone the defined repo(s) into folder(s). If it already exists the specified branches will get pulled.
 
 ```bash
 ./setup.sh
 ```
 
-### Start your services
+## Start your services
 
 This will start our services using docker-compose and the `docker-compose.yml` file.
 
 ```bash
-docker-compose up --build
+docker compose up
 ```
 
-If everything was successful then you should now be able to navigate to [https://appname.dxgroup.local/](https://appname.dxgroup.local/) and see the Mobility login page.
+If everything was successful then you should now be able to navigate to [https://appname.dxgroup.local/](https://appname.dxgroup.local/) and see the login page.
 
-### Trust the Caddy Root CA certificate on your browser
+## Trust the Caddy Root CA certificate on your browser
 
 To prevent your browser from giving security warnings you should trust the Root CA certificate that Caddy generates on the initial start-up.
 You can download it from your Caddy container by using Docker Desktop / VS Code's Docker Extention or a shell session into the container.
@@ -153,10 +181,12 @@ This script uses the maintenance password and the specified URLs to run operatio
 The following command will `sync` all modules sequentially and then `gen` all modules only if each `sync` is successful:
 
 ```bash
-./remote.sh REMOTESYNCONLY REMOTEGENONLY
+./sdev_remote.sh REMOTESYNCONLY REMOTEGENONLY
 ```
 
-### PHP Debugging
+# Features
+
+## PHP Debugging
 
 In this repo, you will find an `Xdebug.Dockerfile`, which builds on the base image to add PHP Xdebug configuration.
 You can use this modified image by updating the service to build it rather than using the base image:
@@ -167,7 +197,7 @@ service_name:
         context: .
         dockerfile: Xdebug.Dockerfile
     image: customxdebug
-    # image: johanmarx/stratusolve_php_apache:latest
+    # image: johanmarx/dxgroup_php_apache:latest
     volumes:
         - ./src:/var/www/html
     extra_hosts:
@@ -179,15 +209,17 @@ service_name:
 
 You can then listen for debug connections on VSCode or PhpStorm on port `9003`.
 
-### Redis Insight
+## Redis Insight
 
 Included in the services is an instance of [Redis Insight](https://redis.io/docs/connect/insight/) which can be used to view and test the Redis data store.
 
-This can be accessed locally at [https://redisinsight.mobility.local/](https://redisinsight.mobility.local/).
+This can be accessed locally at [https://redisinsight.dxgroup.local/](https://redisinsight.dxgroup.local/) or [http://localhost:5540](http://localhost:5540).
 
-You can get the connection details from the relevant .env files. Any setup will persist on restart unless the volume (`redisinsight_data`) is removed.
+You can get the connection details from the relevant environment files. The defaults are:`host:redis password:123`
 
-### PHPUnit Tests
+Any setup will persist on restart unless the volume (`redisinsight_data`) is removed.
+
+## PHPUnit Tests
 
 Included is a `sdev_run_tests.sh` bash script that will run the [PHPUnit](https://phpunit.de/) tests for the modules where it is defined. You can modify the array in the script if you want to reduce the scope.
 
@@ -196,6 +228,18 @@ This scripts works by executing the PHPUnit script in the running Docker contain
 ```bash
 ./sdev_run_tests.sh
 ```
+
+## Maildev Local Email Server
+
+For aid in email development, [maildev](https://github.com/maildev/maildev), is incuded and set up as the default email server for sDev. This gives us a local SMTP server and inbox to test email functionality.
+
+The front end inbox can be accessed at [http://localhost:1080](http://localhost:1080) using the credentials from the `docker-compose.yml` file, default `admin` in both fields.
+
+## Running commands in your container
+
+When you need to execute a single command from withing the context of your container you can use the `run_script_in_app_container.sh` file and customise it as needed.
+
+Otherwise using the `run_shell_in_app_container.sh` will get you and interactive shell.
 
 ## FAQs
 
@@ -261,3 +305,19 @@ docker image prune -a -f
 ```
 
 This will then cause the next compose up to redownload all images and rebuild all containers.
+
+### Getting an `unauthorized` response when trying to pull the divblox-group images
+
+Please ensure you are logged in to the Git Hub Contrainer Registry (GHCR) with your GitHub account. Check and repeat the "GitHub CLI Login" and "Docker login to GHCR" steps above.
+
+You can check that your GitHub login has the `read:packages` scope listed under `Token scopes`
+
+```bash
+gh auth status
+```
+
+You can check that your Docker config file includes an entry in the `auths` for `ghcr.io`:
+
+```bash
+cat ~/.docker/config.json
+```

@@ -1,11 +1,11 @@
 #!/bin/bash
-colour='\033[0;33m'
+colour='\033[38;5;208m'
 normal='\033[0m'
 error='\033[1;31m'
 
 # modules/folders with unit tests
 modules=(
-
+    app
 )
 
 parentFolder=$(basename "$PWD")
@@ -23,5 +23,5 @@ do
         continue
     fi
     echo "container id for $module is $containerid"
-    docker exec -it $containerid /bin/sh -c "cd /var/www/html/phpunit && ./vendor/bin/phpunit"
+    docker exec -it $containerid /bin/sh -c "cd /var/www/html/ && ./vendor/bin/phpunit"
 done

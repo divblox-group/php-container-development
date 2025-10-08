@@ -1,5 +1,5 @@
 #!/bin/bash
-colour='\033[35m'
+colour='\033[38;5;208m'
 normal='\033[0m'
 error='\033[1;31m'
 
@@ -41,7 +41,7 @@ function checkout ()
 # Application 1
 repository="https://github.com/divblox-group/reponamehere.git"
 modules=(
-    foldernamehere,main
+    foldernamehere,main # format: foldername,branchname
 )
 checkout
 
